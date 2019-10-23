@@ -1,0 +1,74 @@
+'''hw7'''
+import random
+import matplotlib.pyplot as plt
+
+def openfile(path):
+    x = []
+    y = []
+    with open(path, 'r') as f:
+        lines = f.readlines()
+        n = len(lines)
+        for line in lines:
+            raw = line.split('\t')
+            x.append([1] + [float(num) for num in raw[0].split(' ')])#要加x_0項=1
+            y.append(int(raw[1]))
+    return x, y, n
+
+def sign(w, xi):
+    dot = 0
+    for j in range(5):
+        dot = dot + w[j] * xi[j]
+    if dot > 0:
+        return 1
+    else:
+        return -1
+    
+def update(w, yi, xi):
+    yx = [yi * xij for xij in xi]
+    w = [w[k] + yx[k] for k in range(5)]
+    return w
+
+def pocketpla(x, y, updates):
+    w = [0]*5 #多一維threshold
+    wp = [0]*5 #放在pocket的w(最好的w)
+    t = updates #剩餘update數
+    leasterror = ntrain
+    while t > 0:
+        i = random.randint(0, ntrain - 1)
+        if sign(w, x[i]) != y[i]:
+            w = update(w, y[i], x[i])
+            t = t - 1
+            error = errorcount(w, x, y, ntrain)
+            if(error < leasterror):
+                leasterror = error
+                wp = w
+    return wp
+
+def shuffle(x, y):
+    randlist = list(zip(x,y)) #把x,y綁在一起
+    random.shuffle(randlist) #洗牌
+    x, y = zip(*randlist) #斷開鎖練
+    return x, y
+
+def errorcount(w, x, y, n):
+    error = 0
+    for i in range(n):
+        if(sign(w, x[i]) != y[i]):
+            error = error + 1
+    return error
+
+'''讀檔'''
+xtrain, ytrain, ntrain = openfile('C:\\Users\\user\\Desktop\\hw1_7_train.dat.txt')
+xtest, ytest, ntest = openfile('C:\\Users\\user\\Desktop\\hw1_7_test.dat.txt')
+
+'''主程式'''
+sum = 0
+histrate = []
+for experiment in range(1126):
+    xtrain, ytrain = shuffle(xtrain, ytrain)
+    wp = pocketpla(xtrain, ytrain, 100)
+    errorrate = errorcount(wp, xtest, ytest, ntest) / ntest
+    sum = sum + errorrate
+    histrate.append(errorrate)
+plt.hist(histrate, [0.08+i*0.01 for i in range(10)])
+print(sum/1126)
