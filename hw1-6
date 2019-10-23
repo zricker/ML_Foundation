@@ -1,0 +1,68 @@
+'''hw6'''
+import random
+import matplotlib.pyplot as plt
+
+def openfile(path):
+    x = []
+    y = []
+    with open(path, 'r') as f:
+        lines = f.readlines()
+        n = len(lines) #資料筆數
+        for line in lines:
+            raw = line.split('\t')
+            x.append([1] + [float(num) for num in raw[0].split(' ')])#要加x_0項=1
+            y.append(int(raw[1]))
+    return x, y, n
+
+def sign(w, xi):
+    dot = 0
+    for j in range(5):
+        dot = dot + w[j] * xi[j]
+    if dot > 0:
+        return 1
+    else:
+        return -1
+    
+def update(w, yi, xi):
+    yx = [yi * xij for xij in xi]
+    w = [w[k] + yx[k] for k in range(5)]
+    return w
+
+def pla(x, y):
+    w = [0]*5 #多一維-threshold
+    t = 0 #update數
+    end = False
+    pivot = n - 1 #錯誤位置
+    i = 0
+    while not end:
+        if sign(w, x[i]) != y[i]:
+            w = update(w, y[i], x[i])
+            t = t + 1
+            pivot = i
+        else:
+            if i == pivot: #已經檢查一輪回來上次錯誤的點
+                end = True
+        i = i + 1
+        if i == n:
+            i = 0
+    return t
+
+def shuffle(x, y):
+    randlist = list(zip(x,y)) #把x,y綁在一起
+    random.shuffle(randlist) #洗牌
+    x, y = zip(*randlist) #斷開鎖練
+    return x, y
+
+'''讀檔'''
+xtrain, ytrain, ntrain = openfile('C:\\Users\\user\\Desktop\\hw1_6_train.dat.txt')
+
+'''主程式'''
+sum = 0
+histt = []
+for experiment in range(1126):
+    xtrain, ytrain = shuffle(xtrain, ytrain)
+    t = pla(xtrain, ytrain)
+    sum = sum + t
+    histt.append(t)
+plt.hist(histt,[i*10 for i in range(10)])
+print(sum / 1126)
